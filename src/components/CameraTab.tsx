@@ -32,7 +32,9 @@ export default function CameraTab() {
     }
 
     useEffect(() => {
-        startCamera()
+        if (!image) {
+            startCamera()
+        }
 
         return () => {
             if (videoRef.current?.srcObject) {
@@ -41,7 +43,7 @@ export default function CameraTab() {
                 videoRef.current.srcObject = null
             }
         }
-    }, [facingMode]) // Restart camera whenever the facing mode changes
+    }, [facingMode, image]) // Restart camera whenever the facing mode changes or the image is cleared
 
     const capturePhoto = () => {
         if (canvasRef.current && videoRef.current) {
@@ -53,7 +55,7 @@ export default function CameraTab() {
                 canvas.height = video.videoHeight
                 context.drawImage(video, 0, 0, canvas.width, canvas.height)
                 const imageData = canvas.toDataURL('image/png')
-                setImage(imageData)
+                setImage(imageData) // Set captured image
             }
         }
     }
@@ -63,7 +65,7 @@ export default function CameraTab() {
             const reader = new FileReader()
             reader.onload = () => {
                 if (reader.result) {
-                    setImage(reader.result.toString())
+                    setImage(reader.result.toString()) // Set uploaded image
                 }
             }
             reader.readAsDataURL(event.target.files[0])
@@ -84,7 +86,6 @@ export default function CameraTab() {
                 throw new Error('Failed to generate palette')
             }
             const data = await response.json()
-            console.log(data.palette)
             addPalette(data.palette) // Save the generated palette to Zustand
         } catch (error) {
             console.error('Error generating palette:', error)
@@ -96,42 +97,44 @@ export default function CameraTab() {
 
     return (
         <div className="p-0 flex flex-col items-center justify-start h-full">
-            {/* Camera Preview */}
-            <div className="relative w-full h-[60vh] bg-black">
-                <video
-                    ref={videoRef}
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    playsInline
-                    muted
-                ></video>
-                <canvas ref={canvasRef} className="hidden"></canvas>
-                <button
-                    onClick={() =>
-                        setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'))
-                    }
-                    className="absolute top-4 right-4 bg-neutral-700 text-white p-2 rounded-full shadow hover:bg-neutral-600"
-                >
-                    Switch Camera
-                </button>
-            </div>
-
-            {/* Buttons */}
-            {image ? (
-                <div className="relative w-full max-w-xs mt-4">
+            {/* Camera Preview or Captured Image */}
+            {!image ? (
+                <div className="relative w-full h-[60vh] bg-black">
+                    <video
+                        ref={videoRef}
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        playsInline
+                        muted
+                    ></video>
+                    <canvas ref={canvasRef} className="hidden"></canvas>
+                    <button
+                        onClick={() =>
+                            setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'))
+                        }
+                        className="absolute top-4 right-4 bg-neutral-700 text-white p-2 rounded-full shadow hover:bg-neutral-600"
+                    >
+                        Switch Camera
+                    </button>
+                </div>
+            ) : (
+                <div className="relative w-full h-[60vh] bg-black flex items-center justify-center">
                     <img
                         src={image}
-                        alt="Captured or uploaded"
-                        className="w-full rounded-lg shadow-md"
+                        alt="Captured"
+                        className="w-auto max-h-full rounded-lg shadow-md"
                     />
                     <button
-                        onClick={() => setImage(null)}
-                        className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full shadow hover:bg-red-600"
+                        onClick={() => setImage(null)} // Clear image and return to camera feed
+                        className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full shadow hover:bg-red-600"
                     >
                         Clear
                     </button>
                 </div>
-            ) : (
+            )}
+
+            {/* Buttons */}
+            {!image && (
                 <div className="flex flex-col items-center w-full mt-4">
                     <div className="flex gap-4">
                         <button
