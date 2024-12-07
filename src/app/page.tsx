@@ -27,7 +27,9 @@ export default function HomePage() {
       <div className="flex-1 overflow-y-auto">{renderActiveTab()}</div>
 
       {/* Tab Bar */}
-      <nav className="h-16 bg-neutral-100 dark:bg-neutral-800 flex justify-around items-center border-t border-neutral-200 dark:border-neutral-700">
+      <nav
+        className="fixed bottom-0 left-0 w-full h-16 bg-neutral-100 dark:bg-neutral-800 flex justify-around items-center border-t border-neutral-200 dark:border-neutral-700 pb-safe-bottom"
+      >
         <button
           onClick={() => setActiveTab('library')}
           className={`flex flex-col items-center text-sm ${activeTab === 'library' ? 'text-neutral-200' : 'text-neutral-500'
